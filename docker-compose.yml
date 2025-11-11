@@ -1,0 +1,42 @@
+services:
+  sqledge:
+    image: mcr.microsoft.com/azure-sql-edge:1.0.7
+    platform: linux/arm64
+    container_name: sqledge
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQLSERVER_PASSWORD:-YourStrong!Passw0rd}"
+      MSSQL_PID: "Developer"
+      MSSQL_ENABLE_TELEMETRY: "0"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server","--appendonly","yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: synonym-service
+    env_file: .env
+    depends_on:               # only require “started”, NOT “healthy”
+      sqledge:
+        condition: service_started
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    command: ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+
+volumes:
+  mssql-data: {}
+  redis-data: {}

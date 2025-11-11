@@ -1,0 +1,7 @@
+{
+  "python.analysis.typeCheckingMode": "strict",
+  "python.testing.pytestEnabled": true,
+  "python.formatting.provider": "none",
+  "ruff.enable": true,
+  "ruff.organizeImports": true
+}
